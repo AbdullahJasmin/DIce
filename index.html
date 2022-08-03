@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dice Game</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="scoreBox off" id="score">
+        <h3>Scores</h3>
+        <p>
+            Player 1 -&ensp; <span id="p1Score">0</span> <br>
+            Player 2 -&ensp; <span id="p2Score">0</span>
+        </p>
+    </div>
+
+    <div class="scoreBox middle" id="tournament">
+        <h3> <input type="number" id="rounds" value="0" min="0" required> Rounds remaining</h3>
+        <span class="instruction">Set the number of rounds you wish to play above</span>
+        <p>
+            Player 1 -&ensp; <span id="p1Wins">0</span> <br>
+            Player 2 -&ensp; <span id="p2Wins">0</span>
+        </p>
+        <button class="" onclick="startGame()">New Tournament</button>
+    </div>
+
+    <div id="game" class="off">
+        <div id="gameDice">
+            <div class="diceContainer">
+                <img class="dice" id="dice1" src="dice_images/dice_1.png" alt="">
+            </div>
+            <div class="diceContainer">
+                <img class="dice" id="dice2" src="dice_images/dice_1.png" alt="">
+            </div>
+        </div>
+        <h2 id="turn">New Game</h2>
+        <h3 id="status">Waiting for dice roll</h3>
+        <button id="roll" onclick="rollDice()">▷</button>
+        <button id="reset" class="reset" onclick="resetGame()">↺</button>
+    </div>
+
+    <script>
+        class Player {
+            constructor(name, score, turn, wins) {
+                this.name = name;
+                this.score = score;
+                this.turn = turn;
+                this.wins = wins;
+
+            }
+            reset() {
+                this.score = 0;
+            }
+            resetWins() {
+                this.wins = 0;
+            }
+            point(x) {
+                this.score = this.score + x;
+            }
+            won(x) {
+                this.wins = this.wins + x;
+            }
+            changeTurn(x) {
+                this.turn = x;
+            }
+            getScore() {
+                return this.score;
+            }
+            getName() {
+                return this.name;
+            }
+            getTurn() {
+                return this.turn;
+            }
+            getWins() {
+                return this.wins;
+            }
+        }
+
+        let p1 = new Player("Player 1", 0, 1, 0);  //player 1 always starts first
+        let p2 = new Player("Player 2", 0, 0, 0);
+
+        let d1 = 1; //dice starts with 1
+        let d2 = 1;
+
+        let round;
+
+        function startGame() {
+            if (document.getElementById("rounds").value <= 0) {
+                alert("Please set the number of rounds to start");
+                return;
+            }
+            document.getElementById("tournament").classList.remove("middle");
+            document.getElementById("game").classList.remove("off");
+            document.getElementById("score").classList.remove("off");
+            document.getElementById("tournament").classList.add("right");
+
+            resetGame();
+            resetRounds()
+        }
+
+        function resetRounds() {
+            p1.resetWins();
+            p2.resetWins();
+
+            document.getElementById("p1Wins").innerHTML = p1.getWins();
+
+            document.getElementById("p2Wins").innerHTML = p2.getWins();
+        }
+
+        function resetGame() {
+            document.getElementById("roll").disabled = false;
+            document.getElementById("roll").classList.remove("disabled");
+            p1.reset();
+            p2.reset();
+            document.getElementById("p1Score").innerHTML = p1.getScore();
+            document.getElementById("p2Score").innerHTML = p2.getScore();
+            document.getElementById("turn").innerHTML = "New Game";
+            document.getElementById("status").innerHTML = "Waiting for dice roll";
+
+            document.getElementById("reset").classList.add("reset");
+            document.getElementById("reset").classList.remove("disabled");
+            document.getElementById("reset").innerHTML = "↺";
+            document.getElementById("reset").disabled = false;
+
+
+        }
+        function gameTurn(p, pn, d1, d2) {
+            if (d1 === d2) {
+                if (d1 === 1) {
+                    p.reset();
+                    document.getElementById("status").innerHTML = p.getName() + " loses his points";
+                }
+                else {
+                    p.point(d1 * 2);
+                    document.getElementById("status").innerHTML = p.getName() + " scores " + d1 * 2 + " points and continues rolling";
+                }
+            }
+            else {
+                p.point(d1 + d2);
+                p.changeTurn(0);
+                pn.changeTurn(1);
+                document.getElementById("status").innerHTML = p.getName() + " scores " + (d1 + d2) + " points and changes turn";
+            }
+            document.getElementById("turn").innerHTML = p.getName() + "'s Turn";
+
+
+            if (p === p1)
+                document.getElementById("p1Score").innerHTML = p.getScore();
+            else
+                document.getElementById("p2Score").innerHTML = p.getScore();
+
+            if (p.getScore() >= 100) {
+                document.getElementById("turn").innerHTML = p.getName() + " wins";
+                document.getElementById("roll").disabled = true;
+                document.getElementById("roll").classList.add("disabled");
+                document.getElementById("reset").classList.remove("reset");
+
+                p.won(1);
+
+                if (p === p1)
+                    document.getElementById("p1Wins").innerHTML = p.getWins();
+                else
+                    document.getElementById("p2Wins").innerHTML = p.getWins();
+
+                document.getElementById("rounds").value--;
+
+                if (document.getElementById("rounds").value <= 0) {
+                    document.getElementById("reset").classList.remove("reset");
+                    document.getElementById("reset").disabled = true;
+                    document.getElementById("reset").classList.add("disabled");
+                    document.getElementById("reset").innerHTML = "Game Over";
+                    document.getElementById("status").innerHTML = "Game Over";
+                } else {
+                    document.getElementById("status").innerHTML = "Move to next round";
+                    document.getElementById("reset").classList.remove("reset");
+                    document.getElementById("reset").innerHTML = "Next Round";
+                }
+
+            }
+
+
+        }
+
+        function rollDice() {
+            if (document.getElementById("rounds").value <= 0) {
+                alert("Please set the number of rounds to start");
+                return;
+            }
+
+            d1 = Math.floor(Math.random() * 6) + 1;
+            d2 = Math.floor(Math.random() * 6) + 1;
+            document.getElementById("dice1").setAttribute("src", "Dice_Images/dice_" + d1 + ".png");
+            document.getElementById("dice2").setAttribute("src", "Dice_Images/dice_" + d2 + ".png");
+            if (p1.getTurn() === 1) {
+                gameTurn(p1, p2, d1, d2);
+            }
+            else {
+                gameTurn(p2, p1, d1, d2);
+            }
+
+        }
+
+    </script>
+</body>
+
+</html>
